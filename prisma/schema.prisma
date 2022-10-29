@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  username   String
+  email      String   @unique()
+  name       String
+  password   String
+  city       String
+  coverImg   String
+  profileImg String
+  website    String?
+  role       UserRole @default(USER)
+
+  // 👥 RELATIONSHIPS
+  posts     Post[]
+  likes     Likes[]
+  comments  Comment[]
+  stories   Story[]
+  following Relationship[] @relation("following")
+  followers Relationship[] @relation("follower")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  description String
+  img         String
+
+  // 👥 RELATIONSHIPS
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+
+  comments Comment[]
+  likes    Likes[]
+}
+
+model Likes {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 👥 RELATIONSHIPS
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+  post   Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String?
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  body String
+
+  // 👥 RELATIONSHIPS
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+
+  post   Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String?
+}
+
+model Story {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  img String
+
+  // 👥 RELATIONSHIPS
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+}
+
+model Relationship {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId String
+  follower    User   @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  String
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
